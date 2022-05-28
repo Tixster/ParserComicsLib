@@ -11,6 +11,7 @@ import SwiftSoup
 enum ParseError: Error {
     case linksPageIsNill(String)
     case mangaLinstIsNill(String)
+    case parse(type: ExceptionType, message: String)
 }
 
 extension ParseError: LocalizedError {
@@ -20,6 +21,8 @@ extension ParseError: LocalizedError {
             return string
         case .mangaLinstIsNill(let string):
             return string
+        case .parse(let type, let message):
+            return "Parse Error:\nType: \(type)\nMessage: \(message)"
         }
     }
 }
@@ -73,12 +76,10 @@ public final class ParserComics {
             let mangaData = MangaData(titles: curTitles, nextPage: URL(string: nextPageURL)!)
             return mangaData
         } catch Exception.Error(type: let type, Message: let message) {
-            print("type: \(type), message: \(message)")
+            throw ParseError.parse(type: type, message: message)
         } catch {
-            print(error.localizedDescription)
             throw error
         }
-        throw ParseError.mangaLinstIsNill("Список манги пустой")
     }
     
     /// Получение следующей страницы с тайтлами
@@ -130,7 +131,11 @@ private extension ParserComics {
                     }
                     if let data = data {
                         print("📨 Data: -", data)
-                        continuaion.resume(returning: data)
+                        if data.isEmpty {
+                            continuaion.resume(throwing: ParseError.mangaLinstIsNill("No Manga List"))
+                        } else {
+                            continuaion.resume(returning: data)
+                        }
                     }
                 }
                 task.resume()
