@@ -1,3 +1,3 @@
 # ParserComics
 
-A description of this package.
+Либа для парсинга комиксов с manga-chan и hentaichan
